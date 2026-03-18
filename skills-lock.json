@@ -1,0 +1,10 @@
+{
+  "version": 1,
+  "skills": {
+    "animating-react-native-expo": {
+      "source": "tristanmanchester/agent-skills",
+      "sourceType": "github",
+      "computedHash": "6ac26ef9ab1b17d92962a4b382f2e7b4320fd876374e9346c4c47659d0164f01"
+    }
+  }
+}
