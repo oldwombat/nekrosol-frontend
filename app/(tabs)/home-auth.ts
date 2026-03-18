@@ -1,9 +1,10 @@
 import { useCallback, useMemo, useState } from 'react';
 
 import type { PlayerProfile } from './home-data';
+import { type ActionType } from './home-data';
 import { useHomeInventory } from './home-inventory';
 
-export type ActionType = 'SPD-1' | 'MED-1' | 'RAD-X' | 'BEG';
+export type { ActionType };
 
 const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL ?? 'http://localhost:3000';
 

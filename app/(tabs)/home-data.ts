@@ -83,12 +83,16 @@ export const skillItems: SkillItem[] = [
   { key: 'smuggler', label: 'Smuggler', tip: 'Skill, stealth logistics, route contraband safely' },
 ];
 
+export type ActionType = 'SPD-1' | 'MED-1' | 'RAD-X' | 'BEG' | 'ESCORT';
+
 export type MissionItem = {
   id: string;
   title: string;
   summary: string;
   details: string;
-  action: 'BEG' | null;
+  energyCost: number;
+  rewardHint: string;
+  action: ActionType | null;
 };
 
 export const missionItems: MissionItem[] = [
@@ -98,6 +102,8 @@ export const missionItems: MissionItem[] = [
     summary: 'Work the markets and alleyways for quick credits.',
     details:
       'A repeatable mission where you ask around settlements for spare credits. This consumes energy and rewards variable credits.',
+    energyCost: 1,
+    rewardHint: '1–5 credits',
     action: 'BEG',
   },
   {
@@ -105,6 +111,8 @@ export const missionItems: MissionItem[] = [
     title: 'Patrol the Solar Fringe',
     summary: 'Scout unstable outskirts for threats and salvage.',
     details: 'Patrol routes across the fringe to discover hazards, contacts, and future mission hooks.',
+    energyCost: 2,
+    rewardHint: '5–15 credits',
     action: null,
   },
   {
@@ -112,6 +120,8 @@ export const missionItems: MissionItem[] = [
     title: 'Salvage Run: Rust Belt',
     summary: 'Recover parts and scrap from collapsed industrial sectors.',
     details: 'Navigate dangerous ruins to collect valuable components for upgrades and trade.',
+    energyCost: 3,
+    rewardHint: 'Items + credits',
     action: null,
   },
   {
@@ -119,7 +129,9 @@ export const missionItems: MissionItem[] = [
     title: 'Escort the Convoy',
     summary: 'Protect trade convoys through contested routes.',
     details: 'Take contracts to defend cargo movement between settlements while managing risk and supply timing.',
-    action: null,
+    energyCost: 2,
+    rewardHint: '10–20 credits',
+    action: 'ESCORT',
   },
 ];
 

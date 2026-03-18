@@ -1,4 +1,4 @@
-import { Pressable, ScrollView, Text, TextInput, View } from 'react-native';
+import { Modal, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import { useEffect, useState } from 'react';
 
 import { base, buttons, Colors, form } from '@/constants/theme';
@@ -18,6 +18,7 @@ export default function HomeScreen() {
   const [activeSkillTip, setActiveSkillTip] = useState<string | null>(null);
   const [selectedMissionId, setSelectedMissionId] = useState<string>(missionItems[0]?.id ?? '');
   const [selectedLocationId, setSelectedLocationId] = useState<string>(locationItems[0]?.id ?? '');
+  const [modalMissionId, setModalMissionId] = useState<string | null>(null);
   const {
     loading,
     actionLoading,
@@ -50,6 +51,7 @@ export default function HomeScreen() {
   const statItems = getStatItems(player);
   const selectedMission = missionItems.find((mission) => mission.id === selectedMissionId) ?? missionItems[0];
   const selectedLocation = locationItems.find((location) => location.id === selectedLocationId) ?? locationItems[0];
+  const modalMission = missionItems.find((m) => m.id === modalMissionId) ?? null;
   const usableActions: ActionType[] = ['SPD-1', 'MED-1', 'RAD-X'];
 
   const onUseInventoryItem = async (action: string) => {
@@ -188,7 +190,10 @@ export default function HomeScreen() {
                     return (
                       <Pressable
                         key={mission.id}
-                        onPress={() => setSelectedMissionId(mission.id)}
+                        onPress={() => {
+                          setSelectedMissionId(mission.id);
+                          setModalMissionId(mission.id);
+                        }}
                         style={{
                           borderWidth: 1,
                           borderColor: active ? palette.link : palette.tabIconDefault,
@@ -366,7 +371,96 @@ export default function HomeScreen() {
 
           {actionMessage ? <Text style={[base.comments, { color: palette.icon }]}>{actionMessage}</Text> : null}
         </ScrollView>
-      ) : (
+      ) : null}
+
+      {/* Mission detail modal */}
+      <Modal
+        visible={modalMission !== null}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setModalMissionId(null)}
+      >
+        <View
+          style={{
+            flex: 1,
+            backgroundColor: 'rgba(0,0,0,0.6)',
+            justifyContent: 'center',
+            alignItems: 'center',
+            padding: 24,
+          }}
+        >
+          <View
+            style={{
+              width: '100%',
+              maxWidth: 480,
+              backgroundColor: palette.background,
+              borderWidth: 1,
+              borderColor: palette.tabIconDefault,
+              borderRadius: 12,
+              padding: 20,
+              gap: 14,
+            }}
+          >
+            {/* Header row */}
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+              <Text style={[base.title, { color: palette.text, fontSize: 22 }]}>{modalMission?.title}</Text>
+              <Pressable
+                onPress={() => setModalMissionId(null)}
+                style={{ padding: 6 }}
+              >
+                <Text style={{ color: palette.icon, fontSize: 20, fontWeight: '700' }}>✕</Text>
+              </Pressable>
+            </View>
+
+            {/* Description */}
+            <Text style={[base.paragraph, { color: palette.text }]}>{modalMission?.details}</Text>
+
+            {/* Energy cost */}
+            <Text style={[base.comments, { color: palette.icon, fontStyle: 'normal' }]}>
+              ⚡ {modalMission?.energyCost} energy
+            </Text>
+
+            {/* Reward hint */}
+            <Text style={[base.comments, { color: palette.icon, fontStyle: 'normal' }]}>
+              💰 {modalMission?.rewardHint}
+            </Text>
+
+            {/* CTA */}
+            {modalMission?.action ? (
+              <Pressable
+                style={[
+                  buttons.primary,
+                  {
+                    backgroundColor: palette.link,
+                    marginTop: 4,
+                  },
+                  actionLoading === modalMission.action && buttons.disabled,
+                ]}
+                disabled={actionLoading !== null}
+                onPress={async () => {
+                  if (modalMission.action) {
+                    await onAction(modalMission.action);
+                  }
+                  setModalMissionId(null);
+                }}
+              >
+                <Text style={[buttons.text, { color: Colors.light.background }]}>
+                  {actionLoading === modalMission.action ? 'Running…' : 'Run Mission'}
+                </Text>
+              </Pressable>
+            ) : (
+              <Pressable
+                style={[buttons.primary, buttons.disabled, { backgroundColor: palette.tabIconDefault, marginTop: 4 }]}
+                disabled
+              >
+                <Text style={[buttons.text, { color: palette.background }]}>Coming Soon</Text>
+              </Pressable>
+            )}
+          </View>
+        </View>
+      </Modal>
+
+      {!player ? (
         <View style={form.inputGroup}>
           <Text style={[base.subtitle, { color: palette.text }]}>Email</Text>
           <TextInput
@@ -410,7 +504,7 @@ export default function HomeScreen() {
           {errorMessage ? <Text style={form.error}>{errorMessage}</Text> : null}
           <Text style={[base.comments, { color: palette.icon }]}>If no account exists for this email, one will be created automatically.</Text>
         </View>
-      )}
+      ) : null}
     </View>
   );
 }

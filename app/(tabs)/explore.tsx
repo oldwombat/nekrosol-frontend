@@ -1,112 +1,118 @@
-import { Image } from 'expo-image';
-import { Platform, StyleSheet } from 'react-native';
+import { Alert, Pressable, ScrollView, Text, View } from 'react-native';
 
-import { Collapsible } from '@/components/ui/collapsible';
-import { ExternalLink } from '@/components/external-link';
-import ParallaxScrollView from '@/components/parallax-scroll-view';
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { IconSymbol } from '@/components/ui/icon-symbol';
-import { Fonts } from '@/constants/theme';
+import { base, buttons, Colors } from '@/constants/theme';
+import { useColorScheme } from '@/hooks/use-color-scheme';
+import { locationItems } from './home-data';
 
-export default function TabTwoScreen() {
+type RadiationLevel = 'LOW' | 'MEDIUM' | 'HIGH';
+
+type LocationRadiation = {
+  level: RadiationLevel;
+  percent: number;
+  flavour: string;
+};
+
+const LOCATION_RADIATION: Record<string, LocationRadiation> = {
+  'dustline-tavern': {
+    level: 'LOW',
+    percent: 5,
+    flavour:
+      'Where deals are struck and debts are called in. The safest place in the Fringe, if you know who to avoid.',
+  },
+  'ember-bank': {
+    level: 'LOW',
+    percent: 5,
+    flavour:
+      'The Ministry-controlled credit exchange. Every transaction logged. Every debt tracked. They always collect.',
+  },
+  'blackglass-market': {
+    level: 'MEDIUM',
+    percent: 35,
+    flavour: 'Salvage, contraband, stolen tech. No questions asked if the credits are real.',
+  },
+  'reactor-district': {
+    level: 'HIGH',
+    percent: 75,
+    flavour:
+      "Restricted. Irradiated. Industrial. The only place to find reactor parts — and the only place that'll kill you slowly for trying.",
+  },
+};
+
+function radiationBadgeColor(percent: number): string {
+  if (percent < 20) return '#22a34a';
+  if (percent <= 60) return '#e07b00';
+  return '#d32f2f';
+}
+
+export default function WorldScreen() {
+  const colorScheme = useColorScheme();
+  const isDark = colorScheme === 'dark';
+  const palette = Colors[isDark ? 'dark' : 'light'];
+
   return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#D0D0D0', dark: '#353636' }}
-      headerImage={
-        <IconSymbol
-          size={310}
-          color="#808080"
-          name="chevron.left.forwardslash.chevron.right"
-          style={styles.headerImage}
-        />
-      }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText
-          type="title"
-          style={{
-            fontFamily: Fonts.rounded,
-          }}>
-          Explore
-        </ThemedText>
-      </ThemedView>
-      <ThemedText>This app includes example code to help you get started.</ThemedText>
-      <Collapsible title="File-based routing">
-        <ThemedText>
-          This app has two screens:{' '}
-          <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> and{' '}
-          <ThemedText type="defaultSemiBold">app/(tabs)/explore.tsx</ThemedText>
-        </ThemedText>
-        <ThemedText>
-          The layout file in <ThemedText type="defaultSemiBold">app/(tabs)/_layout.tsx</ThemedText>{' '}
-          sets up the tab navigator.
-        </ThemedText>
-        <ExternalLink href="https://docs.expo.dev/router/introduction">
-          <ThemedText type="link">Learn more</ThemedText>
-        </ExternalLink>
-      </Collapsible>
-      <Collapsible title="Android, iOS, and web support">
-        <ThemedText>
-          You can open this project on Android, iOS, and the web. To open the web version, press{' '}
-          <ThemedText type="defaultSemiBold">w</ThemedText> in the terminal running this project.
-        </ThemedText>
-      </Collapsible>
-      <Collapsible title="Images">
-        <ThemedText>
-          For static images, you can use the <ThemedText type="defaultSemiBold">@2x</ThemedText> and{' '}
-          <ThemedText type="defaultSemiBold">@3x</ThemedText> suffixes to provide files for
-          different screen densities
-        </ThemedText>
-        <Image
-          source={require('@/assets/images/react-logo.png')}
-          style={{ width: 100, height: 100, alignSelf: 'center' }}
-        />
-        <ExternalLink href="https://reactnative.dev/docs/images">
-          <ThemedText type="link">Learn more</ThemedText>
-        </ExternalLink>
-      </Collapsible>
-      <Collapsible title="Light and dark mode components">
-        <ThemedText>
-          This template has light and dark mode support. The{' '}
-          <ThemedText type="defaultSemiBold">useColorScheme()</ThemedText> hook lets you inspect
-          what the user&apos;s current color scheme is, and so you can adjust UI colors accordingly.
-        </ThemedText>
-        <ExternalLink href="https://docs.expo.dev/develop/user-interface/color-themes/">
-          <ThemedText type="link">Learn more</ThemedText>
-        </ExternalLink>
-      </Collapsible>
-      <Collapsible title="Animations">
-        <ThemedText>
-          This template includes an example of an animated component. The{' '}
-          <ThemedText type="defaultSemiBold">components/HelloWave.tsx</ThemedText> component uses
-          the powerful{' '}
-          <ThemedText type="defaultSemiBold" style={{ fontFamily: Fonts.mono }}>
-            react-native-reanimated
-          </ThemedText>{' '}
-          library to create a waving hand animation.
-        </ThemedText>
-        {Platform.select({
-          ios: (
-            <ThemedText>
-              The <ThemedText type="defaultSemiBold">components/ParallaxScrollView.tsx</ThemedText>{' '}
-              component provides a parallax effect for the header image.
-            </ThemedText>
-          ),
+    <View style={[base.container, { flex: 1, justifyContent: 'flex-start', width: '100%' }]}>
+      <Text style={[base.title, { color: palette.text }]}>World</Text>
+      <ScrollView
+        style={{ width: '100%', flex: 1 }}
+        contentContainerStyle={{ gap: 12, paddingBottom: 24 }}
+        showsVerticalScrollIndicator
+      >
+        {locationItems.map((location) => {
+          const rad = LOCATION_RADIATION[location.id];
+          const badgeColor = rad ? radiationBadgeColor(rad.percent) : '#22a34a';
+          return (
+            <View
+              key={location.id}
+              style={{
+                borderWidth: 1,
+                borderColor: palette.tabIconDefault,
+                borderRadius: 10,
+                padding: 16,
+                backgroundColor: palette.background,
+                gap: 10,
+              }}
+            >
+              <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                <Text style={[base.subtitle, { color: palette.text, fontWeight: '700', fontSize: 18 }]}>
+                  {location.name}
+                </Text>
+                {rad ? (
+                  <View
+                    style={{
+                      backgroundColor: badgeColor,
+                      borderRadius: 999,
+                      paddingHorizontal: 10,
+                      paddingVertical: 4,
+                    }}
+                  >
+                    <Text style={{ color: '#fff', fontSize: 12, fontWeight: '700' }}>
+                      ☢ {rad.level} {rad.percent}%
+                    </Text>
+                  </View>
+                ) : null}
+              </View>
+              {rad ? (
+                <Text style={[base.comments, { color: palette.icon }]}>"{rad.flavour}"</Text>
+              ) : null}
+              <Pressable
+                style={[
+                  buttons.secondary,
+                  {
+                    backgroundColor: palette.background,
+                    borderColor: palette.tabIconDefault,
+                    borderWidth: 1,
+                    alignSelf: 'flex-start',
+                  },
+                ]}
+                onPress={() => Alert.alert('Travel', 'Travel system coming soon')}
+              >
+                <Text style={[buttons.text, { color: palette.text }]}>Travel →</Text>
+              </Pressable>
+            </View>
+          );
         })}
-      </Collapsible>
-    </ParallaxScrollView>
+      </ScrollView>
+    </View>
   );
 }
 
-const styles = StyleSheet.create({
-  headerImage: {
-    color: '#808080',
-    bottom: -90,
-    left: -35,
-    position: 'absolute',
-  },
-  titleContainer: {
-    flexDirection: 'row',
-    gap: 8,
-  },
-});
