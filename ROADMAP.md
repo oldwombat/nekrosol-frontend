@@ -8,13 +8,10 @@
 ## Frontend Todos
 
 ### Tests
-- [ ] **Hook unit tests (useHomeAuth, useHomeInventory)** `[tests-frontend-hooks]`  
-  Add Vitest + `@testing-library/react-hooks`. Test auth flow, inventory merge logic, action dispatch and state updates.
+- [x] **Hook unit tests (useHomeAuth, useHomeInventory)** `[tests-frontend-hooks]` — 16 tests, all green
 
 ### UI/UX
-- [ ] **Replace Explore tab with World/Locations screen** `[frontend-replace-explore]`  
-  Replace the Expo template placeholder with 4 location cards (Dustline Tavern, Ember Bank, Blackglass Market, Reactor District) showing name, summary, radiation badge, and stub travel button.
-
+- [x] **Replace Explore tab with World/Locations screen** `[frontend-replace-explore]`
 - [ ] **Dedicated Inventory screen** `[frontend-inventory-screen]`  
   New `app/(tabs)/inventory.tsx` tab. FlatList of items with quantities. Inline use/equip actions. Empty state.
 
@@ -27,15 +24,13 @@
 - [ ] **Onboarding flow** `[frontend-onboarding]`  
   Welcome modal on first login (when `displayName` is empty). Choose display name + lore intro.
 
-- [ ] **Mission detail modal** `[frontend-mission-modal]`  
-  Tap mission → modal with full description, energy cost, reward preview, Run Mission CTA.
+- [x] **Mission detail modal** `[frontend-mission-modal]`
 
 - [ ] **Player info in TopNav** `[frontend-topnav-player]` *(needs: auth context)*  
   Show `displayName` and credits in the header when authenticated.
 
 ### Architecture
-- [ ] **Frontend API client module** `[arch-api-client]`  
-  Create `lib/api.ts`. Replace scattered `fetch` calls with typed functions.
+- [x] **Frontend API client module** `[arch-api-client]` — `lib/api.ts` created
 
 ---
 
