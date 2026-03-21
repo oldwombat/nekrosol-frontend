@@ -100,6 +100,7 @@ export type LiveMission = {
   rewards?: MissionReward[] | null;
   available: boolean;
   blockedReasons: string[];
+  hideAfterCompletion?: boolean;
 };
 
 export type MissionsResult = {

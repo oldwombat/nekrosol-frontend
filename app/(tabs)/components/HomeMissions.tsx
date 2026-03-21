@@ -153,11 +153,15 @@ export function HomeMissions({ missions, onAction, actionLoading, palette }: Pro
                 }}
                 disabled={actionLoading !== null}
               >
-                <Text style={[buttons.text, { color: palette.text }]}>Run Mission</Text>
+                <Text style={[buttons.text, { color: palette.text }]}>
+                  {selected.hideAfterCompletion ? 'Complete Tutorial ✓' : 'Run Mission'}
+                </Text>
               </Pressable>
             ) : selected && selected.blockedReasons.length > 0 ? (
               <Text style={[base.comments, { color: palette.icon }]}>
-                🔒 {selected.blockedReasons.join(' · ')}
+                {selected.hideAfterCompletion
+                  ? '📍 Purchase from Blackglass Market (World tab)'
+                  : `🔒 ${selected.blockedReasons.join(' · ')}`}
               </Text>
             ) : null}
           </View>
