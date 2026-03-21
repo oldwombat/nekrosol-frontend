@@ -1,4 +1,6 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+
+import { useToasts } from './use-toast-queue';
 
 const DECAY_INTERVAL_MS = 60 * 60 * 1000; // 60 minutes, must match backend RADIATION_DECAY_INTERVAL_MS
 
@@ -25,18 +27,22 @@ export function useRadiationCountdown(
 ): RadiationCountdown {
   const [secondsUntilDecay, setSecondsUntilDecay] = useState<number | null>(null);
   const [liveRadiation, setLiveRadiation] = useState<number>(radiation ?? 0);
+  const prevRadiationRef = useRef<number | null>(null);
+  const { addToast } = useToasts();
 
   useEffect(() => {
     const storedRadiation = radiation ?? 0;
 
     if (storedRadiation <= 0) {
       setLiveRadiation(0);
+      prevRadiationRef.current = 0;
       setSecondsUntilDecay(null);
       return;
     }
 
     if (!lastRadiationUpdate) {
       setLiveRadiation(storedRadiation);
+      prevRadiationRef.current = storedRadiation;
       setSecondsUntilDecay(DECAY_INTERVAL_MS / 1000);
       return;
     }
@@ -47,6 +53,12 @@ export function useRadiationCountdown(
       const elapsedSinceUpdate = now - lastUpdate;
       const ticksDecayed = Math.floor(elapsedSinceUpdate / DECAY_INTERVAL_MS);
       const computed = Math.max(0, storedRadiation - ticksDecayed);
+
+      // Fire a toast when radiation passively ticks down (but not on initial mount)
+      if (prevRadiationRef.current !== null && computed < prevRadiationRef.current) {
+        addToast(`☢ Radiation -${prevRadiationRef.current - computed} (${computed} remaining)`, 'green');
+      }
+      prevRadiationRef.current = computed;
       setLiveRadiation(computed);
 
       if (computed <= 0) {
@@ -61,7 +73,7 @@ export function useRadiationCountdown(
     calculate();
     const id = setInterval(calculate, 1000);
     return () => clearInterval(id);
-  }, [radiation, lastRadiationUpdate]);
+  }, [radiation, lastRadiationUpdate, addToast]);
 
   const decayLabel =
     secondsUntilDecay !== null

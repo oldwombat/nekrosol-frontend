@@ -5,6 +5,7 @@ import type { PlayerQuest, LiveMission } from '@/lib/api';
 import type { PlayerProfile } from './home-data';
 import { type SkillKey } from './home-data';
 import { useHomeInventory } from './home-inventory';
+import { useToasts } from '@/hooks/use-toast-queue';
 
 export type { };
 
@@ -30,6 +31,8 @@ export function useHomeAuth() {
 
   const { inventoryItems, inventoryCounts, loadInventory, resetInventory, mergeInventoryCounts } =
     useHomeInventory();
+
+  const { addToast } = useToasts();
 
   const loadQuests = useCallback(async () => {
     try {
@@ -148,10 +151,20 @@ export function useHomeAuth() {
       // Reload missions + messages after any action (availability may have changed)
       await Promise.all([loadInventory(), loadMissions()]);
 
+      // Fire toast notifications for notable events
+      const sc = data?.statChanges ?? {};
+      if ((sc.health ?? 0) < 0) addToast(`❤️ ${Math.abs(sc.health!)} health lost`, 'red');
+      if ((sc.health ?? 0) > 0) addToast(`❤️ +${sc.health} health restored`, 'green');
+      if ((sc.radiation ?? 0) > 0) addToast(`☢ +${sc.radiation} radiation`, 'red');
+      for (const delta of (data?.inventoryDeltas ?? [])) {
+        if (delta.direction === 'add') addToast(`📦 +${delta.quantity}× ${delta.itemKey}`, 'blue');
+        else addToast(`📦 Used ${delta.quantity}× ${delta.itemKey}`, 'blue');
+      }
+
       const radiationTick = data?.radiationTick;
       const radDamageMsg = (radiationTick?.damage ?? 0) > 0 ? ' ⚠️ Radiation sickness: -2 health' : '';
       const radDecayMsg = (radiationTick?.decayed ?? 0) > 0 ? ` (radiation decayed by ${radiationTick?.decayed})` : '';
-      const newMsgs = (data as { newMessages?: number } | undefined)?.newMessages ?? 0;
+      const newMsgs = data?.newMessages ?? 0;
       const newMsgNote = newMsgs > 0 ? ` 📬 ${newMsgs} new message${newMsgs > 1 ? 's' : ''}` : '';
 
       const slug = action.toLowerCase();
@@ -177,7 +190,7 @@ export function useHomeAuth() {
     } finally {
       setActionLoading(null);
     }
-  }, [loadInventory, loadMissions, mergeInventoryCounts]);
+  }, [addToast, loadInventory, loadMissions, mergeInventoryCounts]);
 
   const onPrestige = useCallback(async (skill: SkillKey): Promise<boolean> => {
     setActionLoading(skill);

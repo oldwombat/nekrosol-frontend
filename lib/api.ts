@@ -9,10 +9,20 @@ export type PlayerMe = PlayerProfile;
 
 const BASE = process.env.EXPO_PUBLIC_API_URL ?? 'http://localhost:3000';
 
+export type InventoryDelta = {
+  itemKey: string;
+  quantity: number;
+  direction: 'add' | 'remove';
+};
+
 export type ActionResult = {
   player?: PlayerMe;
   gain?: number;
   inventoryCounts?: Record<string, number>;
+  inventoryDeltas?: InventoryDelta[];
+  statChanges?: Record<string, number>;
+  rewardsSummary?: string[];
+  newMessages?: number;
   radiationTick?: { decayed: number; damage: 0 | 2 };
   error?: string;
 };
@@ -115,10 +125,10 @@ export type NpcMessage = {
   npcName?: string | null;
   subject?: string | null;
   body?: string | null;
-  type?: string | null;
+  type?: 'mission_available' | 'trial_completed' | 'faction_intro' | 'combat_result' | 'activity_log' | 'general' | null;
   isRead?: boolean | null;
   createdAt?: string | null;
-  metadata?: Record<string, unknown> | null;
+  metadata?: { category?: 'damage' | 'heal' | 'inventory' | 'info'; [key: string]: unknown } | null;
 };
 
 export type MessagesResult = {

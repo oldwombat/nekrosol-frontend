@@ -1,4 +1,6 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+
+import { useToasts } from './use-toast-queue';
 
 const REGEN_INTERVAL_MS = 5 * 60 * 1000; // 5 minutes, must match backend ENERGY_REGEN_INTERVAL_MS
 
@@ -26,6 +28,8 @@ export function useEnergyCountdown(
 ): EnergyCountdown {
   const [secondsUntilRegen, setSecondsUntilRegen] = useState<number | null>(null);
   const [liveEnergy, setLiveEnergy] = useState<number>(energy ?? 0);
+  const prevEnergyRef = useRef<number | null>(null);
+  const { addToast } = useToasts();
 
   useEffect(() => {
     const storedEnergy = energy ?? 0;
@@ -33,6 +37,7 @@ export function useEnergyCountdown(
 
     if (!lastEnergyUpdate) {
       setLiveEnergy(storedEnergy);
+      prevEnergyRef.current = storedEnergy;
       setSecondsUntilRegen(storedEnergy >= maxEnergy ? null : REGEN_INTERVAL_MS / 1000);
       return;
     }
@@ -43,6 +48,12 @@ export function useEnergyCountdown(
       const elapsedSinceUpdate = now - lastUpdate;
       const ticksGained = Math.floor(elapsedSinceUpdate / REGEN_INTERVAL_MS);
       const computed = Math.min(maxEnergy, storedEnergy + ticksGained);
+
+      // Fire a toast when energy ticks up passively (but not on initial mount)
+      if (prevEnergyRef.current !== null && computed > prevEnergyRef.current) {
+        addToast(`⚡ Energy +${computed - prevEnergyRef.current} (${computed}/${maxEnergy})`, 'green');
+      }
+      prevEnergyRef.current = computed;
       setLiveEnergy(computed);
 
       if (computed >= maxEnergy) {
@@ -57,7 +68,7 @@ export function useEnergyCountdown(
     calculate();
     const id = setInterval(calculate, 1000);
     return () => clearInterval(id);
-  }, [energy, energyMax, lastEnergyUpdate]);
+  }, [energy, energyMax, lastEnergyUpdate, addToast]);
 
   const regenLabel =
     secondsUntilRegen !== null
