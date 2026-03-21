@@ -4,6 +4,8 @@
 - Always refer to the user as "boss".
 - Keep explanations concise but educational; this project is a learning codebase.
 - Prefer discoverable, source-backed statements over assumptions.
+- Maintain all Plans and TODOs in plan.md in the root of the repo so they are visible to all contributors including Copilot.
+- Maintain a release notes markdown file in the root of the repo to track past changes to the codebase so that Copilot can refer to it when making suggestions. Link to the release notes file in the plan.md file.
 
 ## App Architecture
 - This repo is the player-facing Expo Router app (`app/`), not the Payload backend.

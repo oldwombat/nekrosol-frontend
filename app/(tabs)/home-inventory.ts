@@ -1,5 +1,7 @@
 import { useCallback, useState } from 'react';
 
+import { api } from '@/lib/api';
+
 type InventoryItemState = {
   id?: string | number;
   itemKey: string;
@@ -24,7 +26,7 @@ const normalizeCounts = (value: unknown): Record<string, number> => {
   );
 };
 
-export function useHomeInventory(inventoryUrl: string) {
+export function useHomeInventory() {
   const [inventoryItems, setInventoryItems] = useState<InventoryItemState[]>([]);
   const [inventoryCounts, setInventoryCounts] = useState<Record<string, number>>(EMPTY_COUNTS);
 
@@ -35,18 +37,14 @@ export function useHomeInventory(inventoryUrl: string) {
 
   const loadInventory = useCallback(async () => {
     try {
-      const response = await fetch(inventoryUrl, {
-        method: 'GET',
-        credentials: 'include',
-      });
+      const result = await api.game.inventory();
 
-      if (!response.ok) {
+      if (!result.ok) {
         resetInventory();
         return;
       }
 
-      const data = await response.json().catch(() => null);
-      const items: InventoryApiItem[] = Array.isArray(data?.items) ? (data.items as InventoryApiItem[]) : [];
+      const items: InventoryApiItem[] = Array.isArray(result.data?.items) ? (result.data.items as InventoryApiItem[]) : [];
       const normalizedItems: InventoryItemState[] = items
         .filter((item) => typeof item?.itemKey === 'string')
         .map((item) => ({
@@ -66,7 +64,7 @@ export function useHomeInventory(inventoryUrl: string) {
     } catch {
       resetInventory();
     }
-  }, [inventoryUrl, resetInventory]);
+  }, [resetInventory]);
 
   const mergeInventoryCounts = useCallback((value: unknown) => {
     const next = normalizeCounts(value);

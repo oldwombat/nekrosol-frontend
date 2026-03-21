@@ -6,6 +6,7 @@ export type PlayerProfile = {
   creditsMax?: number | null;
   energy?: number | null;
   energyMax?: number | null;
+  lastEnergyUpdate?: string | null;
   health?: number | null;
   healthMax?: number | null;
   radiation?: number | null;
@@ -22,6 +23,21 @@ export type PlayerProfile = {
   scavenger?: number | null;
   mechanic?: number | null;
   smuggler?: number | null;
+  // Prestige levels (0 = never prestiged, 4 = max)
+  thugPrestige?: number | null;
+  thiefPrestige?: number | null;
+  grifterPrestige?: number | null;
+  pilotPrestige?: number | null;
+  medicPrestige?: number | null;
+  hackerPrestige?: number | null;
+  technicianPrestige?: number | null;
+  chemistPrestige?: number | null;
+  physicistPrestige?: number | null;
+  scavengerPrestige?: number | null;
+  mechanicPrestige?: number | null;
+  smugglerPrestige?: number | null;
+  lastRadiationUpdate?: string | null;
+  displayTitle?: string | null;
 };
 
 export type StatItem = {
@@ -64,6 +80,39 @@ export type SkillItem = {
   tip: string;
 };
 
+// Rank tiers: ordered by prestige level (index 0 = prestige 0, index 4 = prestige 4).
+// Skills cap at 100. At value=100, player may prestige: rank advances, value resets to 1.
+// 5 prestige levels × 100 skill points = 500 total investment per skill.
+type SkillRankTier = { rank: string };
+
+const skillRankTables: Record<SkillKey, SkillRankTier[]> = {
+  thug:        [{ rank: 'Scrapper' }, { rank: 'Brawler' }, { rank: 'Bruiser' }, { rank: 'Enforcer' }, { rank: 'Juggernaut' }],
+  thief:       [{ rank: 'Pickpocket' }, { rank: 'Prowler' }, { rank: 'Cutpurse' }, { rank: 'Shadowstep' }, { rank: 'Phantom' }],
+  grifter:     [{ rank: 'Hustler' }, { rank: 'Schemer' }, { rank: 'Con Artist' }, { rank: 'Mastermind' }, { rank: 'Architect' }],
+  pilot:       [{ rank: 'Joyrider' }, { rank: 'Freelancer' }, { rank: 'Ace' }, { rank: 'Vanguard' }, { rank: 'Ghost' }],
+  medic:       [{ rank: 'Patcher' }, { rank: 'Field Medic' }, { rank: 'Surgeon' }, { rank: 'Trauma Specialist' }, { rank: 'Miracle Worker' }],
+  hacker:      [{ rank: 'Script Kiddie' }, { rank: 'Logic Bomber' }, { rank: 'Zero-Day' }, { rank: 'Ghost Wire' }, { rank: 'Null Pointer' }],
+  technician:  [{ rank: 'Tinkerer' }, { rank: 'Rigger' }, { rank: 'Engineer' }, { rank: 'Artificer' }, { rank: 'Forge Sage' }],
+  chemist:     [{ rank: 'Mixer' }, { rank: 'Alchemist' }, { rank: 'Synthesist' }, { rank: 'Toxicologist' }, { rank: 'Plague Savant' }],
+  physicist:   [{ rank: 'Student' }, { rank: 'Researcher' }, { rank: 'Theorist' }, { rank: 'Radiomancer' }, { rank: 'Void Entropist' }],
+  scavenger:   [{ rank: 'Drifter' }, { rank: 'Scrounger' }, { rank: 'Salvager' }, { rank: 'Wraith Walker' }, { rank: 'Dust Prophet' }],
+  mechanic:    [{ rank: 'Grease Monkey' }, { rank: 'Wrenchhead' }, { rank: 'Machinist' }, { rank: 'Forge Hand' }, { rank: 'Iron Sage' }],
+  smuggler:    [{ rank: 'Mule' }, { rank: 'Runner' }, { rank: 'Operator' }, { rank: 'Ghost Liner' }, { rank: 'Shadow Broker' }],
+};
+
+/**
+ * Returns the rank name for a skill based on its prestige level.
+ * Prestige 0 + value 0 = unranked (null). Prestige 0 + value > 0 = Tier 1 rank.
+ * Each prestige level unlocks the next rank name.
+ */
+export function getSkillRank(key: SkillKey, value: number, prestige: number): string | null {
+  if (value <= 0 && prestige <= 0) return null;
+  const tiers = skillRankTables[key];
+  // prestige 0 → tier index 0, prestige 1 → tier index 1, etc.
+  const tierIndex = Math.min(prestige, tiers.length - 1);
+  return tiers[tierIndex].rank;
+}
+
 export const skillItems: SkillItem[] = [
   { key: 'thug', label: 'Thug', tip: 'Physical, combat, defence' },
   { key: 'thief', label: 'Thief', tip: 'Physical, agile, nimble' },
@@ -81,58 +130,6 @@ export const skillItems: SkillItem[] = [
   { key: 'scavenger', label: 'Scavenger', tip: 'Physical, salvage, field survival' },
   { key: 'mechanic', label: 'Mechanic', tip: 'Skill, repair systems, maintain rigs and vehicles' },
   { key: 'smuggler', label: 'Smuggler', tip: 'Skill, stealth logistics, route contraband safely' },
-];
-
-export type ActionType = 'SPD-1' | 'MED-1' | 'RAD-X' | 'BEG' | 'ESCORT';
-
-export type MissionItem = {
-  id: string;
-  title: string;
-  summary: string;
-  details: string;
-  energyCost: number;
-  rewardHint: string;
-  action: ActionType | null;
-};
-
-export const missionItems: MissionItem[] = [
-  {
-    id: 'street-begging',
-    title: 'Street Begging',
-    summary: 'Work the markets and alleyways for quick credits.',
-    details:
-      'A repeatable mission where you ask around settlements for spare credits. This consumes energy and rewards variable credits.',
-    energyCost: 1,
-    rewardHint: '1–5 credits',
-    action: 'BEG',
-  },
-  {
-    id: 'solar-fringe-patrol',
-    title: 'Patrol the Solar Fringe',
-    summary: 'Scout unstable outskirts for threats and salvage.',
-    details: 'Patrol routes across the fringe to discover hazards, contacts, and future mission hooks.',
-    energyCost: 2,
-    rewardHint: '5–15 credits',
-    action: null,
-  },
-  {
-    id: 'rust-belt-salvage',
-    title: 'Salvage Run: Rust Belt',
-    summary: 'Recover parts and scrap from collapsed industrial sectors.',
-    details: 'Navigate dangerous ruins to collect valuable components for upgrades and trade.',
-    energyCost: 3,
-    rewardHint: 'Items + credits',
-    action: null,
-  },
-  {
-    id: 'convoy-escort',
-    title: 'Escort the Convoy',
-    summary: 'Protect trade convoys through contested routes.',
-    details: 'Take contracts to defend cargo movement between settlements while managing risk and supply timing.',
-    energyCost: 2,
-    rewardHint: '10–20 credits',
-    action: 'ESCORT',
-  },
 ];
 
 export type LocationItem = {

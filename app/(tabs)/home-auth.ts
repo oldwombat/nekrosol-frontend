@@ -1,12 +1,12 @@
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useState } from 'react';
 
+import { api } from '@/lib/api';
+import type { PlayerQuest, LiveMission } from '@/lib/api';
 import type { PlayerProfile } from './home-data';
-import { type ActionType } from './home-data';
+import { type SkillKey } from './home-data';
 import { useHomeInventory } from './home-inventory';
 
-export type { ActionType };
-
-const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL ?? 'http://localhost:3000';
+export type { };
 
 type SubmitArgs = {
   email: string;
@@ -20,101 +20,87 @@ type SignOutArgs = {
 
 export function useHomeAuth() {
   const [loading, setLoading] = useState(false);
-  const [actionLoading, setActionLoading] = useState<ActionType | null>(null);
+  const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [player, setPlayer] = useState<PlayerProfile | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [actionMessage, setActionMessage] = useState<string | null>(null);
+  const [quests, setQuests] = useState<PlayerQuest[]>([]);
+  const [missions, setMissions] = useState<LiveMission[]>([]);
+  const [unreadMessages, setUnreadMessages] = useState(0);
 
-  const authUrl = useMemo(
-    () => ({
-      login: `${API_BASE_URL}/api/players/login`,
-      signup: `${API_BASE_URL}/api/players`,
-      me: `${API_BASE_URL}/api/players/me`,
-      logout: `${API_BASE_URL}/api/players/logout`,
-      actions: `${API_BASE_URL}/api/player-actions`,
-      inventory: `${API_BASE_URL}/api/player-inventory`,
-    }),
-    [],
-  );
   const { inventoryItems, inventoryCounts, loadInventory, resetInventory, mergeInventoryCounts } =
-    useHomeInventory(authUrl.inventory);
+    useHomeInventory();
+
+  const loadQuests = useCallback(async () => {
+    try {
+      const result = await api.game.quests();
+      if (result.ok) setQuests(result.data?.quests ?? []);
+    } catch {
+      // Non-fatal — quests just won't show until next load
+    }
+  }, []);
+
+  const loadMissions = useCallback(async () => {
+    try {
+      const result = await api.game.missions();
+      if (result.ok) {
+        setMissions(result.data?.missions ?? []);
+        setUnreadMessages(result.data?.unreadMessages ?? 0);
+      }
+    } catch {
+      // Non-fatal
+    }
+  }, []);
 
   const loadCurrentPlayer = useCallback(async () => {
     try {
-      const response = await fetch(authUrl.me, {
-        method: 'GET',
-        credentials: 'include',
-      });
+      const result = await api.players.me();
 
-      if (!response.ok) {
+      if (!result.ok) {
         setPlayer(null);
         return;
       }
 
-      const data = await response.json();
-      setPlayer(data?.user ?? null);
-      await loadInventory();
+      setPlayer(result.data?.user ?? null);
+      await Promise.all([loadInventory(), loadQuests(), loadMissions()]);
     } catch (error) {
       console.error('Error loading player session:', error);
       setPlayer(null);
     }
-  }, [authUrl.me, loadInventory]);
+  }, [loadInventory, loadQuests, loadMissions]);
 
   const onSubmit = useCallback(async ({ email, password, onAuthenticated }: SubmitArgs) => {
     setLoading(true);
     setErrorMessage(null);
 
     try {
-      const loginResponse = await fetch(authUrl.login, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        credentials: 'include',
-        body: JSON.stringify({ email, password }),
-      });
+      const loginResult = await api.players.login(email, password);
 
-      if (loginResponse.ok) {
-        const loginData = await loginResponse.json().catch(() => null);
-        setPlayer(loginData?.user ?? null);
-        await loadInventory();
+      if (loginResult.ok) {
+        setPlayer(loginResult.data?.user ?? null);
+        await Promise.all([loadInventory(), loadQuests(), loadMissions()]);
         onAuthenticated?.();
         return;
       }
 
-      if (loginResponse.status !== 401) {
+      if (loginResult.status !== 401) {
         throw new Error('Unable to authenticate with these credentials');
       }
 
-      const signupResponse = await fetch(authUrl.signup, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        credentials: 'include',
-        body: JSON.stringify({ email, password }),
-      });
+      const signupResult = await api.players.signup(email, password);
 
-      if (!signupResponse.ok) {
+      if (!signupResult.ok) {
         throw new Error('Unable to authenticate with these credentials');
       }
 
-      const secondLoginResponse = await fetch(authUrl.login, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        credentials: 'include',
-        body: JSON.stringify({ email, password }),
-      });
+      const secondLoginResult = await api.players.login(email, password);
 
-      if (!secondLoginResponse.ok) {
+      if (!secondLoginResult.ok) {
         throw new Error('Unable to authenticate with these credentials');
       }
 
-      const loginData = await secondLoginResponse.json().catch(() => null);
-      setPlayer(loginData?.user ?? null);
-      await loadInventory();
+      setPlayer(secondLoginResult.data?.user ?? null);
+      await Promise.all([loadInventory(), loadQuests(), loadMissions()]);
       onAuthenticated?.();
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Authentication failed';
@@ -122,18 +108,17 @@ export function useHomeAuth() {
     } finally {
       setLoading(false);
     }
-  }, [authUrl.login, authUrl.signup]);
+  }, [loadInventory, loadQuests, loadMissions]);
 
   const onSignOut = useCallback(async ({ onSignedOut }: SignOutArgs = {}) => {
     setLoading(true);
     setErrorMessage(null);
 
     try {
-      await fetch(authUrl.logout, {
-        method: 'POST',
-        credentials: 'include',
-      });
+      await api.players.logout();
       setPlayer(null);
+      setMissions([]);
+      setUnreadMessages(0);
       resetInventory();
       onSignedOut?.();
     } catch (error) {
@@ -142,38 +127,46 @@ export function useHomeAuth() {
     } finally {
       setLoading(false);
     }
-  }, [authUrl.logout]);
+  }, [resetInventory]);
 
-  const onAction = useCallback(async (action: ActionType): Promise<boolean> => {
+  const onAction = useCallback(async (action: string): Promise<boolean> => {
     setActionLoading(action);
     setErrorMessage(null);
     setActionMessage(null);
 
     try {
-      const response = await fetch(authUrl.actions, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        credentials: 'include',
-        body: JSON.stringify({ action }),
-      });
+      const result = await api.game.action(action);
 
-      const data = await response.json().catch(() => null);
-
-      if (!response.ok) {
-        throw new Error(data?.error || 'Action failed');
+      if (!result.ok) {
+        throw new Error(result.error || 'Action failed');
       }
 
+      const data = result.data;
       setPlayer(data?.player ?? null);
       mergeInventoryCounts(data?.inventoryCounts);
 
-      await loadInventory();
+      // Reload missions + messages after any action (availability may have changed)
+      await Promise.all([loadInventory(), loadMissions()]);
 
-      if (action === 'BEG') {
-        setActionMessage(`You begged and received ${data?.gain ?? 0} credits.`);
-      } else {
-        setActionMessage(`${action} applied successfully.`);
+      const radiationTick = data?.radiationTick;
+      const radDamageMsg = (radiationTick?.damage ?? 0) > 0 ? ' ⚠️ Radiation sickness: -2 health' : '';
+      const radDecayMsg = (radiationTick?.decayed ?? 0) > 0 ? ` (radiation decayed by ${radiationTick?.decayed})` : '';
+      const newMsgs = (data as { newMessages?: number } | undefined)?.newMessages ?? 0;
+      const newMsgNote = newMsgs > 0 ? ` 📬 ${newMsgs} new message${newMsgs > 1 ? 's' : ''}` : '';
+
+      const slug = action.toLowerCase();
+      switch (slug) {
+        case 'beg':
+          setActionMessage(`You begged and received ${data?.gain ?? 0} credits.${radDamageMsg}${radDecayMsg}${newMsgNote}`);
+          break;
+        case 'escort':
+          setActionMessage(
+            `Convoy escorted. +${data?.gain ?? 0} credits.${(radiationTick?.damage ?? 0) > 0 ? ' ⚠️ Took 2 damage!' : ''}${radDecayMsg}${newMsgNote}`,
+          );
+          break;
+        default:
+          setActionMessage(`${action} applied successfully.${radDamageMsg}${radDecayMsg}${newMsgNote}`);
+          break;
       }
 
       return true;
@@ -184,20 +177,69 @@ export function useHomeAuth() {
     } finally {
       setActionLoading(null);
     }
-  }, [authUrl.actions, loadInventory, mergeInventoryCounts]);
+  }, [loadInventory, loadMissions, mergeInventoryCounts]);
+
+  const onPrestige = useCallback(async (skill: SkillKey): Promise<boolean> => {
+    setActionLoading(skill);
+    setErrorMessage(null);
+    setActionMessage(null);
+
+    try {
+      const result = await api.game.prestige(skill);
+
+      if (!result.ok) {
+        // If blocked by quest (403), surface the quest title — caller will open the modal
+        throw new Error(result.error || 'Prestige failed');
+      }
+
+      setPlayer(result.data?.player ?? null);
+      // Unlock next prestige level's quest is handled server-side; refresh quests
+      await loadQuests();
+      setActionMessage(`🌟 ${skill.charAt(0).toUpperCase() + skill.slice(1)} prestiged! Rank advanced — skill reset to 1.`);
+      return true;
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Prestige failed';
+      setErrorMessage(message);
+      return false;
+    } finally {
+      setActionLoading(null);
+    }
+  }, [loadQuests]);
+
+  const onCompleteQuest = useCallback(async (questProgressId: string): Promise<boolean> => {
+    try {
+      const result = await api.game.completeQuest(questProgressId);
+      if (!result.ok) {
+        setErrorMessage(result.error || 'Could not complete quest');
+        return false;
+      }
+      await loadQuests();
+      return true;
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Quest completion failed';
+      setErrorMessage(message);
+      return false;
+    }
+  }, [loadQuests]);
 
   return {
     loading,
     actionLoading,
     player,
+    quests,
+    missions,
+    unreadMessages,
     inventoryItems,
     inventoryCounts,
     errorMessage,
     actionMessage,
     loadCurrentPlayer,
     loadInventory,
+    loadMissions,
     onSubmit,
     onSignOut,
     onAction,
+    onPrestige,
+    onCompleteQuest,
   };
 }

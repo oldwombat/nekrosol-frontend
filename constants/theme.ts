@@ -2,6 +2,14 @@ import { Platform, StyleSheet } from 'react-native';
 
 /* Below are the colors used in the app. */
 
+export const StatusColors = {
+  danger: '#FF3B3B',   // radiation high, critical health
+  warning: '#FF8C00',  // radiation medium, low health
+  caution: '#FFD700',  // radiation mild, moderate health
+  safe: '#4CAF50',     // normal radiation, good health
+  info: '#2196F3',     // neutral info
+};
+
 const tintColorLight = '#0a7ea4';
 const tintColorDark = '#fff';
 

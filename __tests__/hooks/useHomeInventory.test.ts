@@ -2,8 +2,6 @@ import { renderHook, act } from '@testing-library/react'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { useHomeInventory } from '../../app/(tabs)/home-inventory'
 
-const INVENTORY_URL = 'http://localhost:3000/api/player-inventory'
-
 function makeFetch(ok: boolean, body: unknown) {
   return vi.fn().mockResolvedValue({
     ok,
@@ -27,7 +25,7 @@ describe('useHomeInventory', () => {
       }),
     )
 
-    const { result } = renderHook(() => useHomeInventory(INVENTORY_URL))
+    const { result } = renderHook(() => useHomeInventory())
 
     await act(async () => {
       await result.current.loadInventory()
@@ -46,7 +44,7 @@ describe('useHomeInventory', () => {
       'fetch',
       makeFetch(true, { items: [{ id: '1', itemKey: 'stimpak', quantity: 2 }] }),
     )
-    const { result } = renderHook(() => useHomeInventory(INVENTORY_URL))
+    const { result } = renderHook(() => useHomeInventory())
     await act(async () => { await result.current.loadInventory() })
     expect(result.current.inventoryItems).toHaveLength(1)
 
@@ -67,7 +65,7 @@ describe('useHomeInventory', () => {
       }),
     )
 
-    const { result } = renderHook(() => useHomeInventory(INVENTORY_URL))
+    const { result } = renderHook(() => useHomeInventory())
 
     await act(async () => { await result.current.loadInventory() })
 
@@ -87,7 +85,7 @@ describe('useHomeInventory', () => {
       }),
     )
 
-    const { result } = renderHook(() => useHomeInventory(INVENTORY_URL))
+    const { result } = renderHook(() => useHomeInventory())
 
     await act(async () => { await result.current.loadInventory() })
 
@@ -101,7 +99,7 @@ describe('useHomeInventory', () => {
       makeFetch(true, { items: [{ id: '1', itemKey: 'stimpak', quantity: 3 }] }),
     )
 
-    const { result } = renderHook(() => useHomeInventory(INVENTORY_URL))
+    const { result } = renderHook(() => useHomeInventory())
 
     await act(async () => { await result.current.loadInventory() })
     expect(result.current.inventoryCounts).toEqual({ stimpak: 3 })
@@ -119,7 +117,7 @@ describe('useHomeInventory', () => {
       makeFetch(true, { items: [{ id: '1', itemKey: 'stimpak', quantity: 3 }] }),
     )
 
-    const { result } = renderHook(() => useHomeInventory(INVENTORY_URL))
+    const { result } = renderHook(() => useHomeInventory())
 
     await act(async () => { await result.current.loadInventory() })
     const before = result.current.inventoryCounts
@@ -140,7 +138,7 @@ describe('useHomeInventory', () => {
       makeFetch(true, { items: [{ id: '1', itemKey: 'stimpak', quantity: 3 }] }),
     )
 
-    const { result } = renderHook(() => useHomeInventory(INVENTORY_URL))
+    const { result } = renderHook(() => useHomeInventory())
 
     await act(async () => { await result.current.loadInventory() })
     expect(result.current.inventoryItems).toHaveLength(1)
