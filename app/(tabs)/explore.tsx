@@ -1,10 +1,11 @@
 import { Modal, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 
-import { base, buttons, Colors, StatusColors } from '@/constants/theme';
+import { base, buttons, Colors, form, StatusColors } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { api, type BankDeposit, type BankTerm, type ShopItem } from '@/lib/api';
 import { locationItems } from './home-data';
+import { useHomeAuth } from './home-auth';
 
 type RadiationLevel = 'LOW' | 'MEDIUM' | 'HIGH';
 
@@ -619,11 +620,20 @@ export default function WorldScreen() {
   const [bankLocation, setBankLocation] = useState<string | null>(null);
   const [npcLocation, setNpcLocation] = useState<string | null>(null);
   const [scavengeLocation, setScavengeLocation] = useState<string | null>(null);
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const { loading, player, errorMessage, loadCurrentPlayer, onSubmit } = useHomeAuth();
+
+  useEffect(() => { void loadCurrentPlayer(); }, [loadCurrentPlayer]);
+
+  const authInputStyle = [form.input, { borderColor: palette.tabIconDefault, color: palette.text, backgroundColor: palette.background }];
 
   return (
     <View style={[base.container, { flex: 1, justifyContent: 'flex-start', width: '100%' }]}>
       <Text style={[base.title, { color: palette.text }]}>World</Text>
-      <ScrollView
+      {player ? (
+        <>
+        <ScrollView
         style={{ width: '100%', flex: 1 }}
         contentContainerStyle={{ gap: 12, paddingBottom: 24 }}
         showsVerticalScrollIndicator
@@ -750,6 +760,21 @@ export default function WorldScreen() {
           onClose={() => setScavengeLocation(null)}
           palette={palette}
         />
+      ) : null}
+        </>
+      ) : null}
+      {!player ? (
+        <View style={form.inputGroup}>
+          <Text style={[base.subtitle, { color: palette.text }]}>Email</Text>
+          <TextInput autoCapitalize="none" autoComplete="email" keyboardType="email-address" value={email} onChangeText={setEmail} placeholder="player@example.com" placeholderTextColor={palette.icon} style={authInputStyle} />
+          <Text style={[base.subtitle, { color: palette.text }]}>Password</Text>
+          <TextInput secureTextEntry autoComplete="password" value={password} onChangeText={setPassword} placeholder="••••••••" placeholderTextColor={palette.icon} style={authInputStyle} />
+          <Pressable style={[buttons.primary, { backgroundColor: palette.link }, loading && buttons.disabled]} onPress={() => onSubmit({ email, password, onAuthenticated: () => setPassword('') })} disabled={loading || !email || !password}>
+            <Text style={[buttons.text, { color: Colors.light.background }]}>{loading ? 'Please wait…' : 'Sign in'}</Text>
+          </Pressable>
+          {errorMessage ? <Text style={form.error}>{errorMessage}</Text> : null}
+          <Text style={[base.comments, { color: palette.icon }]}>If no account exists for this email, one will be created automatically.</Text>
+        </View>
       ) : null}
     </View>
   );
