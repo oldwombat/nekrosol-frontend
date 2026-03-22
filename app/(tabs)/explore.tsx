@@ -480,7 +480,7 @@ function DustlineTavernModal({ locationName, visible, onClose, palette }: Tavern
           ) : null}
           {dialogue ? (
             <View style={{ borderWidth: 1, borderColor: palette.tabIconDefault, borderRadius: 8, padding: 14, gap: 8 }}>
-              <Text style={[base.comments, { color: palette.text, fontStyle: 'italic' }]}>"{dialogue.text}"</Text>
+              <Text style={[base.comments, { color: palette.text, fontStyle: 'italic' }]}>{`"${dialogue.text}"`}</Text>
               {dialogue.unlocked.length > 0 ? (
                 dialogue.unlocked.map((name) => (
                   <Text key={name} style={[base.comments, { color: StatusColors.safe }]}>✓ Mission unlocked: {name}</Text>
@@ -678,7 +678,7 @@ export default function WorldScreen() {
                 ) : null}
               </View>
               {rad ? (
-                <Text style={[base.comments, { color: palette.icon }]}>"{rad.flavour}"</Text>
+                <Text style={[base.comments, { color: palette.icon }]}>{`"${rad.flavour}"`}</Text>
               ) : null}
               <View style={{ flexDirection: 'row', gap: 8 }}>
                 <Pressable
