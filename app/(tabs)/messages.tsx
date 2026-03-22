@@ -94,7 +94,7 @@ export default function MessagesScreen() {
                         {!msg.isRead && !isLog ? '  🔵' : ''}
                       </Text>
                       <Text style={[base.comments, { color: palette.icon }]}>
-                        {msg.createdAt ? new Date(msg.createdAt).toLocaleDateString() : ''}
+                        {msg.createdAt ? (() => { const d = new Date(msg.createdAt); return `${d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false })} ${d.toLocaleDateString()}`; })() : ''}
                       </Text>
                     </View>
                     {!isLog && msg.subject ? (
