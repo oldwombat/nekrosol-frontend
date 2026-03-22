@@ -4,42 +4,62 @@ See [RELEASE_NOTES.md](./RELEASE_NOTES.md) for a summary of what's currently bui
 
 ---
 
-## Active Sprint: Prestige Quest Framework (Frontend)
+## Terminology
 
-### Problem
-
-The PRESTIGE ↑ button in HomeStats currently calls the prestige endpoint directly. It needs to:
-1. Check whether the player has a completed quest for this prestige level
-2. Show a quest modal if not yet completed (for click-type quests: immediate accept + complete)
-3. Reflect locked / available / completed states visually
-
-### Dependencies
-
-Frontend Phase 2 depends on backend Phase 1 being live (needs quest IDs + status from API).
+Same as backend — see `nekrosol-backend/plan.md` for full glossary.
 
 ---
 
-## Todos (Frontend)
+## Architecture Overview
 
-### Phase 2 — Frontend Quest UI
+```
+app/(tabs)/_layout.tsx           AuthProvider + ToastProvider wrapping all tabs
+app/(tabs)/auth-context.tsx  →   useAuthContext() — shared player state
+app/(tabs)/home-auth.ts      →   useHomeAuth() — auth/action/prestige logic (used by AuthProvider)
+app/(tabs)/index.tsx         →   Play tab (stats, missions, inventory)
+app/(tabs)/explore.tsx       →   World tab (location cards + modals)
+app/(tabs)/messages.tsx      →   Messages tab (NPC inbox + activity log)
+hooks/use-toast-queue.tsx    →   ToastProvider + useToasts()
+hooks/use-energy-countdown   →   5-min energy regen countdown
+hooks/use-radiation-countdown→   60-min radiation decay countdown
+```
 
-- [ ] `frontend-quest-api` — Add `api.game.quests()` and `api.game.completeQuest(id)` to `lib/api.ts`. Add `QuestStatus` and `PlayerQuest` response types.
-- [ ] `frontend-quest-modal` — Create `app/(tabs)/components/PrestigeQuestModal.tsx`. Shows quest title, flavour text, requirement description, and "Accept & Complete" CTA (for click-type quests: calls complete immediately).
-- [ ] `frontend-quest-display` — Update `HomeStats.tsx`: wire quest state into PRESTIGE ↑ button. States: locked (grey, disabled), available (gold, opens modal), completed (green ✓, unlocks prestige button).
-- [ ] `frontend-quest-hook` — Add quest fetch to `home-auth.ts`: load quests on mount, expose `questsForSkill(key)` helper.
+---
 
-### Near-term
+## Sprint Status
 
-- [ ] `frontend-title-selector` — Account screen: add "Display Title" picker showing all earned prestige rank names across all skills. Calls `PATCH /api/players/me` to update `displayTitle`. Depends on prestige working end-to-end.
+### ✅ Sprint 1 — Prestige Trials Framework (DONE)
+Quest API client, `PrestigeQuestModal`, quest states wired into HomeStats PRESTIGE ↑ button.
+
+### ✅ Sprint 3 — Frontend Integration (DONE)
+Mission engine integration, NPC inbox, energy countdown, radiation countdown.
+
+### ✅ Sprint 4 — Location Mechanics (DONE)
+`EmberBankModal`, `DustlineTavernModal`, `ReactorDistrictModal`. Mission modal removed — right panel only.
+
+### ✅ Sprint 5 — Tutorial Mission UX (DONE)
+Step-by-step tutorial descriptions, "Complete Tutorial ✓" button, locked hints for tutorial missions.
+
+### ✅ Sprint 6 — Activity Log & Toasts (DONE)
+- `ToastProvider` / `useToasts()` / `ToastOverlay` — animated red/green/blue toast pills
+- Toast dispatch on mission actions (stat changes, inventory deltas) and passive regen ticks
+- Messages tab filter: Show Log / Hide Log toggle
+- `activity_log` messages shown in Messages tab with colour-coded borders
+
+### ✅ Sprint 7 — Auth Gating & Shared Auth Context (DONE)
+- World (explore) and Messages tabs now show login form when unauthenticated — same pattern as Play tab
+- `auth-context.tsx`: `AuthProvider` wraps all tabs so login on any tab syncs to all others
+- All tabs use `useAuthContext()` instead of calling `useHomeAuth()` directly
 
 ---
 
 ## Backlog / Future Sprints
 
-- [ ] Add global auth context so player state doesn't need to be re-fetched per tab
-- [ ] Stat bar animations (radiation pulse at high levels, health colour gradient)
-- [ ] Dedicated Inventory screen (currently inline on Play tab)
-- [ ] Onboarding flow for new players
-- [ ] Location travel mechanic (frontend currently shows location cards with stub Travel → button)
-- [ ] Puzzle UI (cipher, wiring, sequence) for future quest types
-- [ ] Fix Expo Router warning: component files inside `app/(tabs)/components/` are treated as routes — move to `components/` at repo root or suppress with `unstable_settings`
+- [ ] `frontend-title-selector` — Account screen: "Display Title" picker showing all earned prestige rank names. Calls `PATCH /api/players/me` to update `displayTitle`.
+- [ ] `frontend-stat-bars` — Radiation pulse above 80%. Health green→yellow→red gradient. Energy pip-style. Credits animated counter.
+- [ ] `frontend-inventory-screen` — Dedicated `app/(tabs)/inventory.tsx` tab. FlatList with use/equip actions. Empty state.
+- [ ] `frontend-onboarding` — Welcome modal on first login (when `displayName` is empty). Choose display name + lore intro. AsyncStorage dismiss.
+- [ ] `frontend-topnav-player` — Show `displayName` and credit balance in TopNav header when authenticated.
+- [ ] `frontend-skill-xp-display` — Show XP progress per skill once backend awards XP on mission completion.
+- [ ] Fix Expo Router warning: components inside `app/(tabs)/components/` treated as routes — move to `components/` at repo root or suppress with `unstable_settings`.
+

@@ -10,8 +10,9 @@
 ## App Architecture
 - This repo is the player-facing Expo Router app (`app/`), not the Payload backend.
 - Main gameplay UI is in `app/(tabs)/index.tsx`.
+- Shared player auth state lives in `app/(tabs)/auth-context.tsx` (`AuthProvider` + `useAuthContext()`). All tab screens use `useAuthContext()` — never call `useHomeAuth()` directly from a tab screen.
+- Auth and action orchestration logic is in `app/(tabs)/home-auth.ts` (consumed by `AuthProvider`).
 - Domain/UI data constants live in `app/(tabs)/home-data.ts`.
-- Auth and action orchestration is in `app/(tabs)/home-auth.ts`.
 - Inventory fetch/state normalization is in `app/(tabs)/home-inventory.ts`.
 
 ## Backend Boundary (Critical)
