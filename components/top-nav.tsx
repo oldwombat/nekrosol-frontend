@@ -1,5 +1,5 @@
 import { useRouter, usePathname } from 'expo-router';
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Pressable, Text, View } from 'react-native';
 
 import { Colors, StatusColors, menu, typography } from '@/constants/theme';
@@ -66,7 +66,7 @@ export function TopNav() {
     [],
   );
 
-  const loadSession = async () => {
+  const loadSession = useCallback(async () => {
     try {
       const response = await fetch(authUrl.me, {
         method: 'GET',
@@ -83,11 +83,11 @@ export function TopNav() {
     } catch {
       setPlayer(null);
     }
-  };
+  }, [authUrl]);
 
   useEffect(() => {
     loadSession();
-  }, [pathname]);
+  }, [pathname, loadSession]);
 
   const navigateTo = (path: '/' | '/lore' | '/account') => {
     setMenuOpen(false);

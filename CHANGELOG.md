@@ -5,6 +5,16 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 
 ## [Unreleased]
 
+### Added (Sprints 3–7)
+- **Sprint 7** — `auth-context.tsx`: `AuthProvider` + `useAuthContext()` — shared player state across all tabs; `_layout.tsx` wraps with `AuthProvider`; all tabs use `useAuthContext()` instead of `useHomeAuth()` directly
+- **Sprint 7** — Auth gating: World (explore) and Messages tabs now show login form when unauthenticated, using same pattern as Play tab
+- **Sprint 7** — Toast notification system: `use-toast-queue.tsx`, `ToastOverlay.tsx`; red/green/blue animated pills for health changes, radiation, inventory deltas; passive regen toasts from countdown hooks
+- **Sprint 7** — Messages tab activity log filter (Show Log / Hide Log toggle)
+- **Sprint 6** — Radiation decay countdown hook (`use-radiation-countdown.ts`, 60 min per point)
+- **Sprint 5** — Tutorial mission UX: step-by-step descriptions for spd-1/med-1/rad-x; "Complete Tutorial ✓" button; friendly locked hints pointing to Blackglass Market
+- **Sprint 4** — `EmberBankModal`, `DustlineTavernModal`, `ReactorDistrictModal` in World tab; location card buttons and badges per location type; mission modal removed (right panel only)
+- **Sprint 3** — Energy regeneration countdown (`use-energy-countdown.ts`); NPC inbox in Messages tab; `lib/api.ts` centralised typed API client extended with missions/messages/bank/npc/prestige endpoints; `PrestigeQuestModal`; quest states in HomeStats PRESTIGE ↑ button
+
 ### Added
 - **World/Locations screen** — replaced the Expo boilerplate Explore tab with 4 location cards (Dustline Tavern, Ember Bank, Blackglass Market, Reactor District), each with radiation badge (🟢 LOW / 🟠 MEDIUM / 🔴 HIGH), in-world flavour text, and a Travel → stub button
 - **Mission detail modal** — tapping any mission on the Play tab now opens a modal with full description, ⚡ energy cost, 💰 reward hint, and a **Run Mission** CTA (or **Coming Soon** in grey for unimplemented actions)

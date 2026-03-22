@@ -2,8 +2,7 @@ import { useCallback, useState } from 'react';
 
 import { api } from '@/lib/api';
 import type { PlayerQuest, LiveMission } from '@/lib/api';
-import type { PlayerProfile } from './home-data';
-import { type SkillKey } from './home-data';
+import type { PlayerProfile, SkillKey } from './home-data';
 import { useHomeInventory } from './home-inventory';
 import { useToasts } from '@/hooks/use-toast-queue';
 

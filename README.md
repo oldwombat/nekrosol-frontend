@@ -1,50 +1,84 @@
-# Welcome to your Expo app 👋
+# Nekrosol — Frontend
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+Player-facing Expo web app for **Nekrosol**, a browser-based text RPG set in a dying solar system.
 
-## Get started
+## Stack
 
-1. Install dependencies
+| Layer | Technology |
+|-------|------------|
+| Framework | [Expo](https://expo.dev) 54 + React Native 0.81 |
+| Routing | Expo Router (file-based) |
+| Language | TypeScript (strict) |
+| Tests | Vitest (unit) |
+| Target | Web — `http://localhost:8081` |
 
-   ```bash
-   npm install
-   ```
-
-2. Start the app
-
-   ```bash
-   npx expo start
-   ```
-
-In the output, you'll find options to open the app in a
-
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
-
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
+## Quick Start
 
 ```bash
-npm run reset-project
+pnpm install
+pnpm web    # http://localhost:8081
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+The app connects to the Nekrosol backend at `http://localhost:3000` by default. Set `EXPO_PUBLIC_API_URL` to override.
 
-## Learn more
+## Screens
 
-To learn more about developing your project with Expo, look at the following resources:
+| Route | Screen | Notes |
+|-------|--------|-------|
+| `app/(tabs)/index.tsx` | **Play** | Stats, missions, inventory — main game loop |
+| `app/(tabs)/explore.tsx` | **World** | 4 location cards with interactive modals |
+| `app/(tabs)/messages.tsx` | **Messages** | NPC inbox + activity log (filterable) |
+| `app/(tabs)/lore.tsx` | **Lore** | In-world lore entries from backend |
+| `app/(tabs)/account.tsx` | **Account** | Display name, sign out |
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+All tabs gate behind a login form when unauthenticated (same pattern across all tabs).
 
-## Join the community
+## Key Files
 
-Join our community of developers creating universal apps.
+| File | Purpose |
+|------|---------|
+| `app/(tabs)/auth-context.tsx` | `AuthProvider` + `useAuthContext()` — shared player auth state across all tabs |
+| `app/(tabs)/home-auth.ts` | `useHomeAuth()` — auth logic (login, actions, prestige, quests) |
+| `app/(tabs)/home-data.ts` | `PlayerProfile` type, skill rank tables, location/mission static data |
+| `app/(tabs)/home-inventory.ts` | `useHomeInventory()` — inventory fetch and merge |
+| `lib/api.ts` | Typed API client — all backend calls via `api.players.*` / `api.game.*` |
+| `constants/theme.ts` | Design tokens: `Colors`, `StatusColors`, `base`, `buttons`, `form` style sheets |
+| `hooks/use-toast-queue.tsx` | `ToastProvider` + `useToasts()` — animated toast notification system |
+| `hooks/use-energy-countdown.ts` | Live energy regeneration countdown (5 min per pip) |
+| `hooks/use-radiation-countdown.ts` | Live radiation decay countdown (60 min per point) |
+| `app/(tabs)/components/ToastOverlay.tsx` | Renders animated toast pills (red/green/blue) |
+| `app/(tabs)/components/HomeStats.tsx` | Stat bars + 12-skill prestige display |
+| `app/(tabs)/components/HomeMissions.tsx` | Mission list with availability, costs, complete/run CTAs |
+| `app/(tabs)/components/HomeInventory.tsx` | Inline inventory with use-item actions |
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+## Auth Pattern
+
+All tabs use a shared `AuthProvider` (in `_layout.tsx`) so login on any tab instantly unlocks all others. Access `useAuthContext()` in any tab — never call `useHomeAuth()` directly from a tab screen.
+
+## Commands
+
+```bash
+pnpm install       # install dependencies
+pnpm web           # start web dev server (port 8081)
+pnpm ios           # start iOS simulator
+pnpm android       # start Android emulator
+pnpm lint          # ESLint
+pnpm test          # Vitest unit tests
+npx tsc --noEmit   # TypeScript type check
+```
+
+## Environment Variables
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `EXPO_PUBLIC_API_URL` | `http://localhost:3000` | Backend base URL |
+
+## Git Workflow
+
+All work happens on feature branches — never commit directly to `main`. See `AGENTS.md` for branch naming conventions.
+
+## Docs
+
+- [`RELEASE_NOTES.md`](./RELEASE_NOTES.md) — What's been built sprint by sprint
+- [`ROADMAP.md`](./ROADMAP.md) — Upcoming features and backlog
+- [`CHANGELOG.md`](./CHANGELOG.md) — Commit-level change log

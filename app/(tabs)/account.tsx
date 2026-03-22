@@ -1,5 +1,5 @@
 import { Pressable, ScrollView, Text, TextInput, View } from 'react-native';
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 
 import { base, buttons, Colors, form } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
@@ -72,7 +72,7 @@ export default function AccountScreen() {
       .filter((r): r is string => r !== null);
   }, [player]);
 
-  const loadPlayer = async () => {
+  const loadPlayer = useCallback(async () => {
     setLoading(true);
     setMessage(null);
     setErrorMessage(null);
@@ -97,11 +97,11 @@ export default function AccountScreen() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [authUrl]);
 
   useEffect(() => {
     loadPlayer();
-  }, []);
+  }, [loadPlayer]);
 
   const onSave = async () => {
     if (!player?.id) return;
