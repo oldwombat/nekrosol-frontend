@@ -4,7 +4,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { base, buttons, Colors, form } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { api, type NpcMessage } from '@/lib/api';
-import { useHomeAuth } from './home-auth';
+import { useAuthContext } from './auth-context';
 
 const LOG_CATEGORY_COLOR: Record<string, string> = {
   damage: '#ef4444',
@@ -22,7 +22,7 @@ export default function MessagesScreen() {
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
   const palette = Colors[isDark ? 'dark' : 'light'];
-  const { loading: authLoading, player, errorMessage, loadCurrentPlayer, onSubmit } = useHomeAuth();
+  const { loading: authLoading, player, errorMessage, loadCurrentPlayer, onSubmit } = useAuthContext();
 
   useEffect(() => { void loadCurrentPlayer(); }, [loadCurrentPlayer]);
 

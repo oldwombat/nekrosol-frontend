@@ -5,7 +5,7 @@ import { base, buttons, Colors, form, StatusColors } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { api, type BankDeposit, type BankTerm, type ShopItem } from '@/lib/api';
 import { locationItems } from './home-data';
-import { useHomeAuth } from './home-auth';
+import { useAuthContext } from './auth-context';
 
 type RadiationLevel = 'LOW' | 'MEDIUM' | 'HIGH';
 
@@ -622,7 +622,7 @@ export default function WorldScreen() {
   const [scavengeLocation, setScavengeLocation] = useState<string | null>(null);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const { loading, player, errorMessage, loadCurrentPlayer, onSubmit } = useHomeAuth();
+  const { loading, player, errorMessage, loadCurrentPlayer, onSubmit } = useAuthContext();
 
   useEffect(() => { void loadCurrentPlayer(); }, [loadCurrentPlayer]);
 

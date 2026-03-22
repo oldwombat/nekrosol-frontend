@@ -9,11 +9,13 @@ import { Colors } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { ToastProvider } from '@/hooks/use-toast-queue';
 import { ToastOverlay } from './components/ToastOverlay';
+import { AuthProvider } from './auth-context';
 
 export default function TabLayout() {
   const colorScheme = useColorScheme();
 
   return (
+    <AuthProvider>
     <ToastProvider>
       <Tabs
         screenOptions={{
@@ -59,5 +61,6 @@ export default function TabLayout() {
       </Tabs>
       <ToastOverlay />
     </ToastProvider>
+    </AuthProvider>
   );
 }

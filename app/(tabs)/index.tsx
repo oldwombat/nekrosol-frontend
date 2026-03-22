@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 
 import { base, buttons, Colors, form } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
-import { useHomeAuth } from './home-auth';
+import { useAuthContext } from './auth-context';
 import type { SkillKey } from './home-data';
 import { HomeStats } from './components/HomeStats';
 import { HomeMissions } from './components/HomeMissions';
@@ -28,7 +28,7 @@ export default function HomeScreen() {
     onAction,
     onPrestige,
     onCompleteQuest,
-  } = useHomeAuth();
+  } = useAuthContext();
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
   const palette = Colors[isDark ? 'dark' : 'light'];
